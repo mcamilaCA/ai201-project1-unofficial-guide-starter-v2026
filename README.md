@@ -256,7 +256,7 @@ I asked Claude to find weaknesses on my initial chunking idea (using the Markdow
 
 **2.**
 
-I gave Claude five output chunks and asked whether questions could be answered based on those chunks and which ones. This was mainly for double-checking the chunking method efficiency and did not require to modify the code or implement anything on top of what was already done.
+I gave Claude five system output chunks and asked whether questions could be answered based on those chunks and which ones. This was mainly for double-checking the chunking method efficiency and did not require to modify the code or implement anything on top of what was already done.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
