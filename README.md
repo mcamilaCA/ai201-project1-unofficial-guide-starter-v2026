@@ -26,6 +26,8 @@
      this repo.
 
      Milestone 5. -->
+This is a Q&A system based on the city_guides corpora. Its main function is to analyze the data, which contains information about several key areas of a city, as well as different towns in it and recommendations in areas dinning, transportation, entertainment, etc. 
+It aims to answer questions in an easy fashion and facilitate the document where more information can be found, which is also where the given answer comes from.
 
 ## Chunking Strategy
 
@@ -249,9 +251,12 @@ Even though the average of the corpus responses is 0.48 there are questions that
 
      Milestone 5. -->
 
-**1.**
+**1.** 
+I asked Claude to find weaknesses on my initial chunking idea (using the Markdown style to chunk). It helped me clarify the approach since the data contains two styles of documens: 9 towm guides and 5 themed documents (whose themes are entertainment, dining, accessibility, etc across different areas of the city). Hence I proceeded to follow a common analysis for both documents with the slight difference of on the themed documents dividing by the city areas mentioned. 
 
 **2.**
+
+I gave Claude five output chunks and asked whether questions could be answered based on those chunks and which ones. This was mainly for double-checking the chunking method efficiency and did not require to modify the code or implement anything on top of what was already done.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
