@@ -22,6 +22,7 @@ to it, write down what you saw, and move on. That's a real observation about
 your pipeline, not giving up.
 """
 
+import re
 from dataclasses import dataclass
 
 import config
@@ -80,6 +81,26 @@ def fallback_split(
     return chunks
 
 
+# Matches the "# Title" line at the top of a document.
+TITLE_RE = re.compile(r"^#\s+(.+?)\s*\n", re.MULTILINE)
+
+# Matches every "## Section" heading in the body.
+HEADING_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
+
+
+def _paragraphs(body: str) -> list[str]:
+    """Split a section's body into paragraphs on blank lines."""
+    raw_paragraphs = re.split(r"\n\s*\n", body.strip())
+
+    cleaned: list[str] = []
+    for paragraph in raw_paragraphs:
+        # Collapse hard line-wraps back into a single line.
+        collapsed = re.sub(r"\s+", " ", paragraph).strip()
+        if collapsed:
+            cleaned.append(collapsed)
+    return cleaned
+
+
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
     Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
@@ -97,7 +118,42 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
       - Would splitting on paragraph breaks keep more thoughts intact than
         splitting on a character count?
     """
-    return fallback_split(documents)
+    chunks: list[Chunk] = []
+
+    for doc in documents:
+        # Pull the title off the top; stamp it onto every chunk below.
+        title_match = TITLE_RE.match(doc.text)
+        if title_match:
+            title = title_match.group(1)
+            body = doc.text[title_match.end():]
+        else:
+            title = doc.source
+            body = doc.text
+
+        # Cut the body at every "## Heading". pieces[0] is the text before
+        # the first heading; after that, heading/body pairs alternate.
+        pieces = HEADING_RE.split(body)
+        intro, rest = pieces[0], pieces[1:]
+        headings = rest[0::2]
+        section_bodies = rest[1::2]
+
+        # The intro becomes its own section so it isn't dropped.
+        sections = [("Overview", intro)] + list(zip(headings, section_bodies))
+
+        index = 0
+        for heading, section_body in sections:
+            for paragraph in _paragraphs(section_body):
+                chunks.append(
+                    Chunk(
+                        text=f"# {title}\n## {heading}\n\n{paragraph}",
+                        source=doc.source,
+                        index=index,
+                        produced_by="chunker.py::split_documents",
+                    )
+                )
+                index += 1
+
+    return chunks
 
 
 def describe(chunks: list[Chunk]) -> str:

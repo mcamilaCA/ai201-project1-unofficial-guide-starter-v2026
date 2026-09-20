@@ -54,79 +54,93 @@
      Milestone 3. -->
 
 ======================================================================
-Chunk 1  |  source: thread_bike_commute.txt#0  |  produced by: chunker.py::fallback_split
+Chunk 1  |  source: guide_accessibility.md#0  |  produced by: chunker.py::split_documents
 ======================================================================
-THREAD: Is a bike worth it for a 20 minute walk commute?
+# Getting around the region with limited mobility
+## Overview
 
---- reply 1 (14 votes) ---
-Yeah. Cuts an 18 minute walk to about 6. The thing nobody mentions is storage — covered bike parking exists at three buildings and is full by 9am at all three.
-
---- reply 2 (9 votes) ---
-Counterpoint, I sold mine. Between November and March the paths are either icy or salted and salt destroys a drivetrain in one season.
-
---- reply 3 (22 votes) ---
-Both true. I keep a cheap bike for September to November and walk the rest of the year. Total cost was about $120 for the bike and I don't care what happensto it.
-
---- reply 4 (5 votes) ---
-If you do get one, the campus does free registration and it's the only reason I got mine back after it was taken.
-
+An honest assessment rather than a promotional one. Some of these places are difficult and it is better to know in advance.
 
 ======================================================================
-Chunk 2  |  source: thread_first_gen.txt#0  |  produced by: chunker.py::fallback_split
+Chunk 2  |  source: guide_corry_vale.md#4  |  produced by: chunker.py::split_documents
 ======================================================================
-THREAD: Anything specific for first-generation students?
+# Corry Vale
+## What to see
 
---- reply 1 (33 votes) ---
-The advising office has a specific programme and it is genuinely good, but it is opt-in and badly publicised. Ask for it by name.
-
---- reply 2 (41 votes) ---
-The thing I'd say: the unwritten rules are the hard part, not the coursework. Ask about the unwritten rules explicitly. People are happy to explain them andnobody volunteers them.
-
---- reply 3 (16 votes) ---
-Emergency fund for textbooks and travel exists and is not means-tested beyond a short form.
+The valley itself is the attraction. The footpath network is dense and well marked, and a circuit taking in three of the four villages is about nine miles with 500 metres of ascent. The chapel in the second village is 12th century and always unlocked.
 
 ======================================================================
-Chunk 3  |  source: thread_laptop_specs.txt#0  |  produced by: chunker.py::fallback_split
+Chunk 3  |  source: guide_givens_mill.md#4  |  produced by: chunker.py::split_documents
 ======================================================================
-THREAD: How much laptop do I actually need for CS courses?
+# Givens Mill
+## What to see
 
---- reply 1 (31 votes) ---
-Less than the recommended spec page says. 16GB of RAM is the one number worth paying for; everything else you'll never notice.
-
---- reply 2 (18 votes) ---
-Adding: the lab machines exist and are better than anything you'll buy. For the heavy assignments people just use those.
-
---- reply 3 (12 votes) ---
-I did two years on an 8GB machine and it was fine until the last project, at which point it very much wasn't. 16 is the answer.
+The mill runs tours on the hour from 11 to 3 and the machinery is operating during them, which is loud and much more impressive than a static exhibit. The church has a Saxon doorway. The river walk downstream reaches Brightwater in about three hours.
 
 ======================================================================
-Chunk 4  |  source: thread_office_hours_etiquette.txt#0  |  produced by: chunker.py::fallback_split
+Chunk 4  |  source: guide_marchwood.md#3  |  produced by: chunker.py::split_documents
 ======================================================================
-THREAD: Is it weird to go to office hours with no specific question?
+# Marchwood
+## Eat and drink
 
---- reply 1 (44 votes) ---
-No, and this is the single most common thing first years get wrong. 'I'm following the lectures but I don't feel like I understand the shape of it' is a completely normal thing to say.
-
---- reply 2 (29 votes) ---
-They're usually empty. You are doing the instructor a favour by turning up.
-
---- reply 3 (18 votes) ---
-If it helps, treat it as a standing appointment. Go every week for a month and it stops feeling like a thing.
-
+The best eating is in the Northgate district, a 12-minute tram ride from the station, where about thirty restaurants sit within four streets. The area immediately around the station is uniformly poor and expensive. Marchwood keeps later hours than anywhere elsein the region — kitchens serve until 10:30pm, and until midnight on Fridays and Saturdays.
 
 ======================================================================
-Chunk 5  |  source: thread_roommate_conflict.txt#0  |  produced by: chunker.py::fallback_split
+Chunk 5  |  source: guide_seasons.md#2  |  produced by: chunker.py::split_documents
 ======================================================================
-THREAD: Roommate situation isn't working. What now?
+# When to visit the region
+## Summer, June to August
 
---- reply 1 (28 votes) ---
-Talk to your RA early, and frame it as 'we need help sorting this out' rather than 'move me'. Room changes are possible but the process starts with mediation and skipping that step slows it down.
+June is excellent everywhere. July and August split: Halden Bay becomes very busy and the parking problem dominates, Kestrelford fills with walkers, and Brightwater goes quiet to the point of dullness with the university empty.
 
---- reply 2 (14 votes) ---
-Room changes happen at the semester boundary almost always, and mid-semester only in fairly serious cases.
+For each one, ask: could someone answer a question using only this,
+without reading what came before or after?
+(.venv) camila@Camilas-MacBook-Air ai201-project1-unofficial-guide-starter-v2026 % python app.py chunks
+115 chunks total. Showing 5, spread across the corpus.
 
---- reply 3 (33 votes) ---
-Write down specifics before the meeting. 'It's not working' is hard to act on; 'guests four nights a week past 2am' is not.
+Paste these into your README under Sample Chunks. The rubric asks
+for the source file and the function that produced them — both are
+printed for you below.
+
+======================================================================
+Chunk 1  |  source: guide_accessibility.md#0  |  produced by: chunker.py::split_documents
+======================================================================
+# Getting around the region with limited mobility
+## Overview
+
+An honest assessment rather than a promotional one. Some of these places are difficult and it is better to know in advance.
+
+======================================================================
+Chunk 2  |  source: guide_corry_vale.md#4  |  produced by: chunker.py::split_documents
+======================================================================
+# Corry Vale
+## What to see
+
+The valley itself is the attraction. The footpath network is dense and well marked, and a circuit taking in three of the four villages is about nine miles with 500 metres of ascent. The chapel in the second village is 12th century and always unlocked.
+
+======================================================================
+Chunk 3  |  source: guide_givens_mill.md#4  |  produced by: chunker.py::split_documents
+======================================================================
+# Givens Mill
+## What to see
+
+The mill runs tours on the hour from 11 to 3 and the machinery is operating during them, which is loud and much more impressive than a static exhibit. The church has a Saxon doorway. The river walk downstream reaches Brightwater in about three hours.
+
+======================================================================
+Chunk 4  |  source: guide_marchwood.md#3  |  produced by: chunker.py::split_documents
+======================================================================
+# Marchwood
+## Eat and drink
+
+The best eating is in the Northgate district, a 12-minute tram ride from the station, where about thirty restaurants sit within four streets. The area immediately around the station is uniformly poor and expensive. Marchwood keeps later hours than anywhere elsein the region — kitchens serve until 10:30pm, and until midnight on Fridays and Saturdays.
+
+======================================================================
+Chunk 5  |  source: guide_seasons.md#2  |  produced by: chunker.py::split_documents
+======================================================================
+# When to visit the region
+## Summer, June to August
+
+June is excellent everywhere. July and August split: Halden Bay becomes very busy and the parking problem dominates, Kestrelford fills with walkers, and Brightwater goes quiet to the point of dullness with the university empty.
 
 
 ## Sample Answer
@@ -134,27 +148,95 @@ Write down specifics before the meeting. 'It's not working' is hard to act on; '
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
-
+**Question:**(.venv) camila@Camilas-MacBook-Air ai201-project1-unofficial-guide-starter-v2026 % python app.py ask "how many people are there in Brightwater?" --show-prompt
+ 
 **Answer:**
+(best distance 0.271, cutoff 0.55)
 
-```
-```
+======================================================================
+System instruction sent with the prompt
+======================================================================
+You answer questions using only the documents provided to you.
+
+Rules:
+- Use only the information in the documents below. Do not use anything you know from elsewhere.
+- If the documents don't cover the question, say you don't have enough information. Do not guess.
+- Name the document your answer came from, using the filename given in each excerpt.
+- Be brief. Two or three sentences is usually enough.
+
+======================================================================
+The assembled prompt, exactly as sent
+======================================================================
+Documents:
+
+[from guide_brightwater.md]
+# Brightwater
+## Overview
+
+Brightwater is a river town of about 40,000 people, roughly doubling in term time. It grew around a mill that closed in 1974 and spent twenty years working out what to be instead. The answer turned out to be the university.
+
+[from guide_accessibility.md]
+# Getting around the region with limited mobility
+## Straightforward
+
+**Brightwater** is level along the river and through the centre. The mill museum is step-free. The station is a 15-minute walk from campus on flat ground, or the shuttle meets the four busiest arrivals.
+
+[from guide_marchwood.md]
+# Marchwood
+## Getting there
+
+Every railway line in the region meets here, which is the city's defining feature. Trains to Brightwater run every 40 minutes until 11pm. The airport is 20 minutes out by a dedicated bus that runs every 15 minutes and costs more than the equivalent taxi shared between three people.
+
+[from guide_brightwater.md]
+# Brightwater
+## Getting there
+
+The train runs to the regional hub eleven times a day on weekdays and six times on Sundays, taking 50 minutes. The station is a 15-minute walk from campus, or the shuttle meets the four busiest arrivals. Long-distance coaches stop on Verrill Street rather than at the station, which catches people out. There is no airport; the nearest is 90 minutes by road.
+
+[from guide_thornby_wells.md]
+# Thornby Wells
+## Getting there
+
+On the Marchwood line, 25 minutes from the hub, with trains every hour and every two hours on Sundays. The station is in the centre. Driving from Brightwater is 45 minutes on good roads. Parking is free for two hours everywhere in town, which is unusual and generous.
+
+---
+
+Question: how many people are there in Brightwater?
+
+Answer using only the documents above, and name the file you used.
+======================================================================
+
+Brightwater has a population of about 40,000 people, which roughly doubles during term time (from guide_brightwater.md).
+
+Sources retrieved: guide_accessibility.md, guide_brightwater.md, guide_marchwood.md, guide_thornby_wells.md
+
+1 model calls this session, 567 tokens (536 in, 31 out)
+
 
 **My relevance cutoff:**
+THRESHOLD = 0.56
 
-<!-- The number you set in config.py, and how you got there.
+I chose this number as a threshold after the findings when testing the two groups: 
+- Non-corpus questions best distance average: 0.7962
+- Corpes questions best distance average: 0.4812
 
-     You ran five questions your corpus covers and the five in OUT_OF_SCOPE
-     that it clearly doesn't, and wrote down the best distance for each. What
-     did those two groups look like? Where was the gap? Put the actual numbers
-     here — the table below wants all ten rows.
+Even though the average of the corpus responses is 0.48 there are questions that are answered correctly and have a higher best distance that does not seem to surpase 0.56 
 
-     Milestone 4. -->
+| Question                                                   | In corpus? | Best distance |
+|------------------------------------------------------------|------------|---------------|
+|Which places are most accessible?                           |    True    |      0.485    |
+|where are the most expensive dining options?                |    True    |      0.552    |
+|what is the best place to go for a hike with hills?         |    True    |      0.549    |
+|how long does it take to get to Marchwood from the airport? |    True    |      0.325    |
+|How much is the price to enter the city museum?             |    True    |      0.495    |
+|-----------------------------------------------------------------------------------------|
+|What is harry potter about?                                 |    False   |      0.810    |
+|Where is Denmark?                                           |    False   |      0.819    |
+|what is the best type of  coffee in autumn?                 |    False   |      0.648    |
+|what does rosemary do?                                      |    False   |      0.843    |
+|which display is the best to create an ebook?               |    False   |      0.861    |
+|-----------------------------------------------------------------------------------------|
 
-| Question | In corpus? | Best distance |
-|---|---|---|
-|  |  |  |
 
 ## How I Used AI
 

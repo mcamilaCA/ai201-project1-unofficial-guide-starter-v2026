@@ -38,11 +38,11 @@ QUESTIONS = [
 # records what happened, so criterion 3 has evidence in the run log alongside
 # the others. They cost no model calls: a refusal never reaches the model.
 OUT_OF_SCOPE = [
-    "What is the capital of Mongolia?",
-    "How do I change the oil in a diesel engine?",
-    "Who won the 1994 World Cup?",
-    "What is the recommended dosage of ibuprofen for a headache?",
-    "How do I write a for loop in Rust?",
+    "What is harry potter about?",
+    "Where is Denmark?",
+    "what is the best type of  coffee in autumn?",
+    "what does rosemary do?",
+    "which display is the best to create an ebook?",
 ]
 
 
