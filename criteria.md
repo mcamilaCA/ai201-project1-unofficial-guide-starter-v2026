@@ -23,8 +23,7 @@ For at least 4 of my 5 test questions, the retrieved chunks include one that
 contains the answer.
 
 **Why this target:**
-<!-- e.g. "One of my questions is about a topic only two documents mention, so
-     I expect that one to be hard." -->
+It means the system has a 90% accuracy, which garantees user's get their answers most of the time.
 
 ---
 
@@ -33,8 +32,7 @@ contains the answer.
 Every answer the system produces names at least one source document.
 
 **Why this target:**
-<!-- Why all five and not four? What about your setup makes that achievable —
-     or what would have to go wrong for it not to be? -->
+It ensures the user can double-check the statement if needed or where they can get more information if they come up with follow up questions. Plus it ensures the system is not creating knowledge but refering to the documentation.
 
 ---
 
@@ -50,48 +48,23 @@ in at least 4 of 5 tries.
      just keep five of them, or the "4 of 5" above has nothing to be 4 of. -->
 
 **Why this target:**
-<!-- What did your distances look like when you set the cutoff in Milestone 4?
-     Was there a clean gap, or did the two groups overlap? -->
+It makes the system honest and transparent, it is better to provide the user's with an honest answer than forcing the system to produce any answer.
 
 ---
 
-## 4. Something about your chunks
+## 4. None of the chunks cut mid-sentence or mid-word
 
-<!-- YOU WRITE THIS ONE.
-
-     How would you know if your chunks were the right size? Name something
-     countable or observable.
-
-     Examples of the right shape — don't copy these, they should come from
-     what you actually saw in Milestone 3:
-       - "At least 4 of 5 sampled chunks read as a complete thought, with no
-          sentence cut in half at either end."
-       - "No chunk is shorter than 200 characters, since anything below that
-          in my corpus turned out to be a heading with no content under it." -->
-
-
+All the chunks have to be complete sentences, and convey a full idea. The user has to be able to read and understand them, as well as find the response. 
 
 **Why this target:**
+I want to avoid the system using information to answer and not giving the user the proper explanation or source to look for the factual data the system shares.
 
+## 5. System names all documents where information is found
 
-
----
-
-## 5. Your choice
-
-<!-- YOU WRITE THIS ONE TOO.
-
-     Pick something you actually care about getting right. It could be about
-     speed, about refusals, about a particular kind of question your corpus
-     handles badly, about source attribution being correct rather than merely
-     present — anything, as long as it names a number or an observable
-     outcome. -->
-
-
+In the data, there are multiple entries regarding the same information. For example, guide_eating provides information of several places and their dinning options, but documents specialized on the place might mention them too. If the system gatehr data from more than one source, it should state it - for at least 3 out of 5 tries, since some answers are found directly from one source.
 
 **Why this target:**
-
-
+It gives the user freedom to do its own research of a place or topic while guiding the right places to look for the information.
 
 ---
 
