@@ -1,10 +1,6 @@
 """
 Decide whether an answer was actually correct.
 
-`run_eval.py` looks for a function here called `judge(question, expects,
-answer, results) -> bool` and, if it finds one, uses it to fill in the Run
-columns of the report instead of leaving them blank.
-
 The approach: `expects` holds one or more short phrases you'd expect a
 correct answer to contain (see questions.py). We normalize away case and
 punctuation differences, split `expects` into independent candidate phrases
