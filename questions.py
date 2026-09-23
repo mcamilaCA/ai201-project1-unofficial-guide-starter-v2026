@@ -27,7 +27,7 @@ QUESTIONS = [
     {"question": "Where are the most expensive dining options?", "expects": "Brightwater's riverside strip"},
     {"question": "What is the best place to go for a hike with hills?", "expects": "Corry Vale circuit and Givens Mill"},
     {"question": "How long does it take to get to Marchwood from the airport?", "expects": "About 30 minutes"},
-    {"question": "How much is the price to enter the museum?", "expects": "Free"},
+    {"question": "How much is the price to enter the city museum?", "expects": "Free"},
 ]
 
 # Questions from a different world entirely. Your gate should refuse all five.
