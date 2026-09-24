@@ -15,9 +15,17 @@ rest of the project if they were wrong:
    `sentence-transformers`. It is the same model — `all-MiniLM-L6-v2`, 384
    dimensions — but it arrives as an ONNX build from Chroma's own CDN, so the
    install needs neither PyTorch nor a reachable Hugging Face. See `_embedder`.
+
+4. `search` is hybrid: semantic (embeddings) and keyword (BM25) each rank
+   every chunk, and the two rankings are merged by Reciprocal Rank Fusion —
+   by rank position, not raw score, because cosine distance and BM25 score
+   live on incompatible scales with no shared zero point. Each `Result` still
+   carries its real cosine distance, never a fused score, so the gate's
+   threshold in `gate.py` keeps meaning exactly what it always meant.
 """
 
 import os
+import re
 import shutil
 from dataclasses import dataclass
 
@@ -28,6 +36,7 @@ from dataclasses import dataclass
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 import chromadb  # noqa: E402
+from rank_bm25 import BM25Okapi  # noqa: E402
 
 import config
 from chunker import Chunk
@@ -127,6 +136,39 @@ def embed(texts: list[str]) -> list[list[float]]:
     return vectors.tolist() if hasattr(vectors, "tolist") else vectors
 
 
+def _tokenize(text: str) -> list[str]:
+    """Lowercase word split. BM25 just needs consistent tokens, not linguistics."""
+    return re.findall(r"\w+", text.lower())
+
+
+# Keyed by collection name. Rebuilding this from scratch is a few milliseconds
+# at this corpus's scale, but there's no reason to redo it on every question.
+_bm25_cache: dict[str, tuple[BM25Okapi, list[str]]] = {}
+
+
+def _bm25_index(collection, name: str) -> tuple[BM25Okapi, list[str]]:
+    """
+    Keyword index for one collection, built from its stored chunks.
+
+    Chroma has no keyword index of its own. Rather than maintain a second
+    persisted index file that has to stay in sync with `build_index`, this
+    rebuilds from `collection.get()` on first use per collection and caches
+    the result — cheap enough at hundreds of chunks that it isn't worth the
+    extra moving part.
+    """
+    cached = _bm25_cache.get(name)
+    if cached is not None:
+        return cached
+
+    stored = collection.get()
+    ids = stored["ids"]
+    tokenized_corpus = [_tokenize(doc) for doc in stored["documents"]]
+
+    index = (BM25Okapi(tokenized_corpus), ids)
+    _bm25_cache[name] = index
+    return index
+
+
 def _client():
     return chromadb.PersistentClient(
         path=str(config.CHROMA_DIR),
@@ -149,6 +191,8 @@ def build_index(
     """
     name = config.collection_name(corpus, variant)
     client = _client()
+
+    _bm25_cache.pop(name, None)
 
     try:
         client.delete_collection(name)
@@ -185,9 +229,17 @@ def search(
     variant: str = "default",
 ) -> list[Result]:
     """
-    Retrieve the chunks closest in meaning to a question.
+    Retrieve the chunks most relevant to a question — meaning and keywords.
 
-    Returns them nearest-first, each with its distance.
+    Semantic search (embeddings) and keyword search (BM25) each rank every
+    chunk in the collection, and the two rankings are merged with Reciprocal
+    Rank Fusion: a chunk's fused score is the sum, across both rankings, of
+    1 / (60 + its rank there). Fusing by rank rather than raw score sidesteps
+    the fact that cosine distance and BM25 score aren't on comparable scales.
+
+    Returned nearest-first by fused rank. `distance` on each `Result` is
+    always the real cosine distance from the semantic ranking, never a fused
+    score — the relevance gate depends on that staying true.
     """
     top_k = top_k or config.TOP_K
     name = config.collection_name(corpus, variant)
@@ -199,21 +251,38 @@ def search(
             f"No index called '{name}'. Run `python app.py index` first."
         ) from exc
 
-    raw = collection.query(
-        query_embeddings=embed([question]),
-        n_results=min(top_k, collection.count()),
-    )
+    count = collection.count()
+    if count == 0:
+        return []
+
+    raw = collection.query(query_embeddings=embed([question]), n_results=count)
+    ids = raw["ids"][0]
+    documents = dict(zip(ids, raw["documents"][0]))
+    metadatas = dict(zip(ids, raw["metadatas"][0]))
+    distances = dict(zip(ids, raw["distances"][0]))
+    semantic_rank = {id_: rank for rank, id_ in enumerate(ids)}
+
+    bm25, bm25_ids = _bm25_index(collection, name)
+    bm25_scores = bm25.get_scores(_tokenize(question))
+    bm25_order = sorted(range(len(bm25_ids)), key=lambda i: bm25_scores[i], reverse=True)
+    bm25_rank = {bm25_ids[i]: rank for rank, i in enumerate(bm25_order)}
+
+    RRF_K = 60
+    fused_ids = sorted(
+        ids,
+        key=lambda id_: 1 / (RRF_K + semantic_rank[id_]) + 1 / (RRF_K + bm25_rank[id_]),
+        reverse=True,
+    )[:top_k]
 
     results: list[Result] = []
-    for text, meta, distance in zip(
-        raw["documents"][0], raw["metadatas"][0], raw["distances"][0]
-    ):
+    for id_ in fused_ids:
+        meta = metadatas[id_]
         results.append(
             Result(
-                text=text,
+                text=documents[id_],
                 source=str(meta.get("source", "unknown")),
                 label=f"{meta.get('source', 'unknown')}#{meta.get('index', 0)}",
-                distance=float(distance),
+                distance=float(distances[id_]),
                 produced_by=str(meta.get("produced_by", "unknown")),
             )
         )
@@ -236,5 +305,6 @@ def index_exists(corpus: str | None = None, variant: str = "default") -> bool:
 
 def reset():
     """Delete every index. Occasionally the fastest way out of a mess."""
+    _bm25_cache.clear()
     if config.CHROMA_DIR.exists():
         shutil.rmtree(config.CHROMA_DIR)

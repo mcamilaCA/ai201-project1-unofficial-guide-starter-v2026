@@ -258,10 +258,30 @@ I asked Claude to find weaknesses on my initial chunking idea (using the Markdow
 
 I gave Claude five system output chunks and asked whether questions could be answered based on those chunks and which ones. This was mainly for double-checking the chunking method efficiency and did not require to modify the code or implement anything on top of what was already done.
 
-<!-- ── Stretch features ─────────────────────────────────────────────────────
-     Doing one? Say so here BEFORE you start. A feature this README never
-     claims earns nothing.
-     ───────────────────────────────────────────────────────────────────────── -->
+## Stretch features
+
+**Hybrid search.** Added keyword search (BM25, via `rank-bm25`) alongside the
+existing embedding search in `store.py::search`. Semantic and keyword search
+each rank every chunk in the collection, and the two rankings are merged with
+Reciprocal Rank Fusion — combined by rank position, not raw score, since
+cosine distance and BM25 score sit on incompatible scales with no shared zero
+point. Each returned chunk still carries its real cosine distance, never a
+fused score, so the relevance gate in `gate.py` is untouched by this.
+
+This mostly helps on questions containing an exact term — a street name, a
+number — that the embedding model treats as just another word among many.
+Example:
+
+*"How much does it cost to park on Verrill Street?"* — `guide_brightwater.md#1`
+is the only chunk that actually mentions Verrill Street. Semantic-only search
+ranked it last of its own top 5 (distance 0.596). Hybrid search ranked it
+first, because BM25 caught the exact match on the rare token "Verrill" that
+the embedding mostly glided past.
+
+|        | Semantic only                          | Hybrid                              |
+|--------|-----------------------------------------|--------------------------------------|
+| Rank 1 | guide_regional_transport.md#5 (0.510)   | **guide_brightwater.md#1 (0.596)**   |
+| Rank 5 | guide_brightwater.md#1 (0.596)           | guide_accessibility.md#6 (0.661)     |
 
 ---
 
