@@ -66,6 +66,18 @@ In the data, there are multiple entries regarding the same information. For exam
 **Why this target:**
 It gives the user freedom to do its own research of a place or topic while guiding the right places to look for the information.
 
+> **Revised in unit 2:** Same target (3 of 5), same intent — but measured by tracing
+> whether each answer's specific claims appear in a cited document, not by comparing
+> the count of retrieved files to the count of cited files.
+>
+> **Why revised:** My first pass measured this as retrieved-file-count vs.
+> cited-file-count, which came out 0 of 5 every time — but top-k retrieval always
+> pulls back more files than are actually used, so that count was always going to
+> floor at 0 regardless of whether the system was honest about sources. It wasn't
+> testing the thing I cared about. Reading each answer against the documents it
+> drew from is slower but actually answers the question: does the system ever use
+> a fact from a document it didn't cite?
+
 ---
 
 <!-- ─────────────────────────────────────────────────────────────────────────

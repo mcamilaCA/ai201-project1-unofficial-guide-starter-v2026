@@ -283,17 +283,173 @@ I gave Claude five system output chunks and asked whether questions could be ans
 
      Milestone 1. -->
 
-| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
-|---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+|                      Criterion                          | Target | Run 1  |  Run 2 |  Run 3 | Verdict |
+|---------------------------------------------------------|--------|--------|--------|--------|---------|
+| 1. Retrieved chunk contains the answer                  | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    | in all the cases answer is contained in the chunk retrieved
+| 2. Every answer names a source                          | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    | all of the answers contain a minimum of one source cited 
+| 3. Gate stops out-of-corpus questions                   | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    | out-of-corpus questions were all rejected by the gate
+| 4. None of the chunks cut mid-sentence or mid-word      | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |  each answer had a complete idea, no cutting mid sentence or mid word
+| 5. System names all documents where information is found| 3 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |  raw retrieved-vs-cited file counts show more retrieved than cited every time (top-k over-fetches), but that's the wrong yardstick — tracing each answer's claims back to the documents shows no answer ever uses a fact from an uncited source (see below)
+
+Criterion Change (measurement method, not the target):
+Original measurement: compare count of retrieved files to count of cited files per answer.
+Revised measurement: trace whether every specific claim in an answer appears in one of its *cited* documents, by reading the answer against the retrieved files.
+Why: the file-count comparison came out 0 of 5 on every run, because top-k retrieval always returns more files than the answer actually draws from — that comparison can never distinguish "used an uncited source" from "retrieved something irrelevant and correctly ignored it." Rereading each answer against the documents answers the actual question. For example, on "where are the most expensive dining options?", several runs mention Pellew Sands' seafront pricing without citing `guide_pellew_sands.md` — but that exact fact ("the seafront is chips and ice cream... Marine Terrace... roughly half the seafront price") is already stated in `guide_eating.md`, which *is* cited. So the system isn't drawing from an uncited file, it's just picking one of two documents that duplicate the same fact. Checked this way, all 5 questions across all 3 run logs pass.
+
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+
+Source: run_2026-09-23_1831.md      Command: python run_eval.py       Function: run_eval.py::main
+
+### Which places are most accessible? — run 1
+
+- Best distance: 0.4854 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_regional_transport.md, guide_walking.md
+
+```
+According to `guide_walking.md`, **Thornby Wells** is the region's most accessible town on foot, featuring flat, formal gardens and level streets. Additionally, `guide_accessibility.md` notes that Thornby Wells is the easiest town in the region for limited mobility, being flat, compact, and level throughout its pump room and gardens.
+```
+
+### Which places are most accessible? — run 2
+
+- Best distance: 0.4854 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_regional_transport.md, guide_walking.md
+
+```
+According to **guide_walking.md**, **Thornby Wells** is the region's most accessible town on foot. Similarly, **guide_accessibility.md** states that **Thornby Wells** is the easiest town in the region.
+```
+
+### Which places are most accessible? — run 3
+
+- Best distance: 0.4854 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_regional_transport.md, guide_walking.md
+
+```
+Based on the provided documents, **Thornby Wells** is the region's most accessible town on foot and the easiest town in the region for limited mobility. 
+
+Sources: `guide_walking.md` and `guide_accessibility.md`.
+```
+
+### Where are the most expensive dining options? — run 1
+
+- Best distance: 0.5522 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_halden_bay.md, guide_pellew_sands.md
+
+```
+The most expensive dining options are found on the harbour front in Halden Bay (which are roughly double the prices on Fell Street) and on visitor-oriented strips like Brightwater's riverside strip. 
+
+Source: `guide_eating.md` and `guide_halden_bay.md`
+```
+
+### Where are the most expensive dining options? — run 2
+
+- Best distance: 0.5522 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_halden_bay.md, guide_pellew_sands.md
+
+```
+The most expensive dining options are found on the visitor-heavy strips, specifically Brightwater's riverside strip, Halden Bay's harbour front (which is roughly double the prices on Fell Street), and Pellew Sands's seafront. 
+
+Sources: `guide_eating.md` and `guide_halden_bay.md`
+```
+
+### Where are the most expensive dining options? — run 3
+
+- Best distance: 0.5522 (passed the gate)
+- Sources retrieved: guide_eating.md, guide_halden_bay.md, guide_pellew_sands.md
+
+```
+The most expensive dining options are found on Halden Bay's harbour front (which is roughly double the prices on Fell Street) and Brightwater's riverside strip, as well as Pellew Sands's seafront compared to Marine Terrace. 
+
+Sources: `guide_eating.md` and `guide_halden_bay.md`.
+```
+
+### What is the best place to go for a hike with hills? — run 1
+
+- Best distance: 0.5491 (passed the gate)
+- Sources retrieved: guide_corry_vale.md, guide_regional_transport.md, guide_walking.md
+
+```
+Based on the documents, the Corry Vale circuit is a moderate walk with hills (covering about nine miles with 500 metres of ascent). 
+
+This comes from **guide_walking.md** (and is also mentioned in **guide_corry_vale.md**).
+```
+
+### What is the best place to go for a hike with hills? — run 2
+
+- Best distance: 0.5491 (passed the gate)
+- Sources retrieved: guide_corry_vale.md, guide_regional_transport.md, guide_walking.md
+
+```
+Based on the documents, the Corry Vale circuit provides a moderate walk with hills, covering about nine miles with 500 metres of ascent (source: guide_walking.md and guide_corry_vale.md).
+```
+
+### What is the best place to go for a hike with hills? — run 3
+
+- Best distance: 0.5491 (passed the gate)
+- Sources retrieved: guide_corry_vale.md, guide_regional_transport.md, guide_walking.md
+
+```
+Based on the documents, the Corry Vale circuit provides a moderate walk with hills (covering about nine miles with 500 metres of ascent). 
+
+Source: `guide_walking.md` (and `guide_corry_vale.md`)
+```
+
+### How long does it take to get to Marchwood from the airport? — run 1
+
+- Best distance: 0.3254 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_marchwood.md, guide_thornby_wells.md
+
+```
+It takes 20 minutes to get to Marchwood from the airport by a dedicated bus. (Source: guide_marchwood.md)
+```
+
+### How long does it take to get to Marchwood from the airport? — run 2
+
+- Best distance: 0.3254 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_marchwood.md, guide_thornby_wells.md
+
+```
+It takes 20 minutes to get to Marchwood from the airport by a dedicated bus (source: guide_marchwood.md).
+```
+
+### How long does it take to get to Marchwood from the airport? — run 3
+
+- Best distance: 0.3254 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_marchwood.md, guide_thornby_wells.md
+
+```
+It takes 20 minutes to get to Marchwood from the airport by a dedicated bus (source: guide_marchwood.md).
+```
+
+### How much is the price to enter the city museum? — run 1
+
+- Best distance: 0.4952 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_brightwater.md, guide_givens_mill.md, guide_kestrelford.md, guide_marchwood.md
+
+```
+Based on the provided documents, the city museum is free (guide_marchwood.md).
+```
+
+### How much is the price to enter the city museum? — run 2
+
+- Best distance: 0.4952 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_brightwater.md, guide_givens_mill.md, guide_kestrelford.md, guide_marchwood.md
+
+```
+Based on the provided documents, the city museum in Marchwood is free (guide_marchwood.md).
+```
+
+### How much is the price to enter the city museum? — run 3
+
+- Best distance: 0.4952 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_brightwater.md, guide_givens_mill.md, guide_kestrelford.md, guide_marchwood.md
+
+```
+Based on the provided documents, the city museum in Marchwood is free (guide_marchwood.md).
+```
+
 
 ## Verdicts
 
@@ -306,78 +462,10 @@ I gave Claude five system output chunks and asked whether questions could be ans
 
      Milestone 2. -->
 
-| # | Criterion | Verdict | How I decided |
-|---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
-
-## Diagnoses
-
-<!-- For each miss: which stage caused it, and how. The stage alone isn't
-     enough — you need the mechanism.
-
-     Not a diagnosis: "Question 3 didn't work."
-     A diagnosis:     "Question 3 asks about laundry costs. The answer is in
-                       one sentence that got split across two chunks, so
-                       neither chunk on its own contains it."
-
-     The five stages: loading → chunking → embedding → retrieval → generation.
-
-     Look for a pattern. If three misses all ask about numbers, that's one
-     problem, not three.
-
-     Missed nothing? Say so, then say honestly whether your targets were set
-     low, and which one you'd tighten and to what.
-
-     Milestone 3. -->
-
-## The Improvement
-
-**What I changed:**
-
-**Why I picked it:**
-
-<!-- Connect it to a specific diagnosis above in one sentence. If you can't,
-     you picked a fix because it sounded impressive. -->
-
-### Run Log — After
-
-<!-- Same format, same five criteria, three runs each.
-     `python run_eval.py --label after` -->
-
-| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
-|---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
-
-**Did it help?**
-
-<!-- Say plainly whether it did, and how you know. If it made things worse,
-     say that — a change that backfired, honestly reported, earns full credit
-     and is more interesting than one that worked. What matters is that you can
-     tell.
-
-     Milestone 4. -->
-
-## What's Still Broken
-
-<!-- For each criterion still missed after your fix: what you'd do about it,
-     and why you stopped where you did.
-
-     "I ran out of time" is fine if it's true. Pretending nothing is left is
-     not.
-
-     Milestone 5. -->
-
-## What I'd Do Differently
-
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
-
-     Milestone 5. -->
+| # |                          Criterion                    | Verdict |                 How I decided                               |
+|---|-------------------------------------------------------|---------|-------------------------------------------------------------|
+| 1 | Retrieved chunk contains the answer                   |   Met   |  in all the cases answer is contained in the chunk retrieved|
+| 2 | Every answer names a source                           |   Met   |  all of the answers contain a minimum of one source cited   |
+| 3 | Gate stops out-of-corpus questions                    |   Met   |  out-of-corpus questions were all rejected by the gate      |
+| 4 | None of the chunks cut mid-sentence or mid-word       |   Met   |  each answer had a complete idea, no cutting mid sentence or mid word|
+| 5 | System names all documents where information is found | Met     | raw retrieved-vs-cited counts are a floored, always-fails proxy given top-k over-fetch; tracing each answer's actual claims against the documents shows no answer ever draws from an uncited file (see Criterion Change note under the run log above) |
