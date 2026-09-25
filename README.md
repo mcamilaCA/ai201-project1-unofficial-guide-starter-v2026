@@ -258,6 +258,13 @@ I asked Claude to find weaknesses on my initial chunking idea (using the Markdow
 
 I gave Claude five system output chunks and asked whether questions could be answered based on those chunks and which ones. This was mainly for double-checking the chunking method efficiency and did not require to modify the code or implement anything on top of what was already done.
 
+**3.** 
+
+I double checked the veridity of my criterion and explanations. I asked it whether it was a realistic approach to the isue and prompted it to spot weaknesses or incorrections if they were visible. 
+
+**4.** 
+In some ocassions, such as how to add the comparison for the new criteria after adding hybrid search, I asked it how to properly format it, and it caught a mistake of missing proper explations, and I could double-check and correct as appropriate. 
+
 ## Stretch features
 
 **Hybrid search.** Added keyword search (BM25, via `rank-bm25`) alongside the
@@ -627,3 +634,5 @@ Beyond that: answers are still occasionally longer than they need to be, and how
      differently, and why?
 
      Milestone 5. -->
+
+I would divide the corpus differently since there are two types of documents in the corpus: city guides and general guides. It is a bit complicated to choose a way so that the general guides are divided by place and still have the general information correlating several places based on one trait or specific characteristic. 
