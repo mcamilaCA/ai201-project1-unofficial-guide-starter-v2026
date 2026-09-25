@@ -303,18 +303,18 @@ the embedding mostly glided past.
 
      Milestone 1. -->
 
-|                      Criterion                          | Target | Run 1  |  Run 2 |  Run 3 | Verdict |
-|---------------------------------------------------------|--------|--------|--------|--------|---------|
-| 1. Retrieved chunk contains the answer                  | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    | in all the cases answer is contained in the chunk retrieved
-| 2. Every answer names a source                          | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    | all of the answers contain a minimum of one source cited 
-| 3. Gate stops out-of-corpus questions                   | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    | out-of-corpus questions were all rejected by the gate
-| 4. None of the chunks cut mid-sentence or mid-word      | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |  each answer had a complete idea, no cutting mid sentence or mid word
-| 5. System names all documents where information is found| 3 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |  raw retrieved-vs-cited file counts show more retrieved than cited every time (top-k over-fetches), but that's the wrong yardstick — tracing each answer's claims back to the documents shows no answer ever uses a fact from an uncited source (see below)
+|                      Criterion                          | Target | Run 1  |  Run 2 |  Run 3 | Verdict    |
+|---------------------------------------------------------|--------|--------|--------|--------|------------|
+| 1. Retrieved chunk contains the answer                  | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met       | in all the cases answer is contained in the chunk retrieved
+| 2. Every answer names a source                          | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met       | all of the answers contain a minimum of one source cited 
+| 3. Gate stops out-of-corpus questions                   | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met       | out-of-corpus questions were all rejected by the gate
+| 4. None of the chunks cut mid-sentence or mid-word      | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met       |  each answer had a complete idea, no cutting mid sentence or mid word
+| 5. System names all documents where information is found| 3 of 5 | 0 of 5 | 0 of 5 | 0 of 5 |  Missed    |  raw retrieved-vs-cited file counts show more retrieved than cited every time (top-k over-fetches), but that's the wrong yardstick — tracing each answer's claims back to the documents shows no answer ever uses a fact from an uncited source (see below)
 
 Criterion Change (measurement method, not the target):
 Original measurement: compare count of retrieved files to count of cited files per answer.
 Revised measurement: trace whether every specific claim in an answer appears in one of its *cited* documents, by reading the answer against the retrieved files.
-Why: the file-count comparison came out 0 of 5 on every run, because top-k retrieval always returns more files than the answer actually draws from — that comparison can never distinguish "used an uncited source" from "retrieved something irrelevant and correctly ignored it." Rereading each answer against the documents answers the actual question. For example, on "where are the most expensive dining options?", several runs mention Pellew Sands' seafront pricing without citing `guide_pellew_sands.md` — but that exact fact ("the seafront is chips and ice cream... Marine Terrace... roughly half the seafront price") is already stated in `guide_eating.md`, which *is* cited. So the system isn't drawing from an uncited file, it's just picking one of two documents that duplicate the same fact. Checked this way, all 5 questions across all 3 run logs pass.
+Why: the file-count comparison came out 0 of 5 on every run, because top-k retrieval always returns more files than the answer actually draws from, that comparison can never distinguish "used an uncited source" from "retrieved something irrelevant and correctly ignored it." Rereading each answer against the documents answers the actual question. For example, on "where are the most expensive dining options?", several runs mention Pellew Sands' seafront pricing without citing `guide_pellew_sands.md`, but that exact fact ("the seafront is chips and ice cream... Marine Terrace... roughly half the seafront price") is already stated in `guide_eating.md`, which *is* cited. So the system isn't drawing from an uncited file, it's just picking one of two documents that duplicate the same fact. 
 
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
@@ -488,4 +488,142 @@ Based on the provided documents, the city museum in Marchwood is free (guide_mar
 | 2 | Every answer names a source                           |   Met   |  all of the answers contain a minimum of one source cited   |
 | 3 | Gate stops out-of-corpus questions                    |   Met   |  out-of-corpus questions were all rejected by the gate      |
 | 4 | None of the chunks cut mid-sentence or mid-word       |   Met   |  each answer had a complete idea, no cutting mid sentence or mid word|
-| 5 | System names all documents where information is found | Met     | raw retrieved-vs-cited counts are a floored, always-fails proxy given top-k over-fetch; tracing each answer's actual claims against the documents shows no answer ever draws from an uncited file (see Criterion Change note under the run log above) |
+| 5 | System names all documents where information is found |   Met   | raw retrieved-vs-cited counts are a floored, always-fails proxy given top-k over-fetch; tracing each answer's actual claims against the documents shows no answer ever draws from an uncited file (see Criterion Change note under the run log above) |
+
+
+## Diagnoses
+
+<!-- For each miss: which stage caused it, and how. The stage alone isn't
+     enough — you need the mechanism.
+
+     Not a diagnosis: "Question 3 didn't work."
+     A diagnosis:     "Question 3 asks about laundry costs. The answer is in
+                       one sentence that got split across two chunks, so
+                       neither chunk on its own contains it."
+
+     The five stages: loading → chunking → embedding → retrieval → generation.
+
+     Look for a pattern. If three misses all ask about numbers, that's one
+     problem, not three.
+
+     Missed nothing? Say so, then say honestly whether your targets were set
+     low, and which one you'd tighten and to what.
+
+     Milestone 3. -->
+
+Nothing was missed in Unit 1 — all five criteria met their targets, and two of
+them (1 and 3) held at 5 of 5 against only a 4-of-5 bar, so there's slack
+there. The target I'd call fragile is criterion 5: it held at 3 of 5, but only
+because this corpus happens to duplicate key facts across a themed guide and a
+town-specific guide — the same dining-price facts appear in both
+`guide_eating.md` and `guide_pellew_sands.md` / `guide_brightwater.md`. A
+corpus without that duplication would make under-citation much easier to
+trigger. That fragility — not a diagnosed failure — is what the Unit 2 change
+below targets: retrieving more candidate documents per question so a single
+document's absence is less likely to quietly narrow an answer.
+
+There was also a criterion change in the measurement method, not the target, of criterion 5:
+Original measurement: compare count of retrieved files to count of cited files per answer.
+Revised measurement: trace whether every specific claim in an answer appears in one of its *cited* documents, by reading the answer against the retrieved files.
+The file-count comparison for the original criterion came out 0 of 5 on every run, because top-k retrieval always returns more files than the answer actually draws from. Since that comparison can never distinguish "used an uncited source" from "retrieved something irrelevant and correctly ignored it" I compared by rereading each answer against the documents answers the actual question. For example, on "where are the most expensive dining options?", several runs mention Pellew Sands' seafront pricing without citing `guide_pellew_sands.md`, but that exact fact ("the seafront is chips and ice cream... Marine Terrace... roughly half the seafront price") is already stated in `guide_eating.md`, which *is* cited. So the system isn't drawing from an uncited file, it's just picking one of two documents that duplicate the same fact. 
+
+## The Improvement
+
+**What I changed:**
+
+I added the Hybrid Search and fused it with current semantic ranking by using Reciprocal Rank Fusion.
+
+**Why I picked it:**
+By using keywords (BM25) both the question and chunks are tokenized, and then the scores are chunked by term overlap, by doing this, I hope the system has a better answer due to the semantic level given with this technique. Inteas of simply matching by equaling to question, it understands the semantics behind it and gets the most accurate answer (and the fact that words with no semantic meaning carry no weight on the decision, such as "the" for example.) This is the fix for the fragility noted above under Diagnoses: fusing in keyword-based retrieval pulls in more candidate documents per question, so the answer is less dependent on any single document happening to be the one that contains a given fact.
+
+<!-- Connect it to a specific diagnosis above in one sentence. If you can't,
+     you picked a fix because it sounded impressive. -->
+
+### Run Log — After
+
+<!-- Same format, same five criteria, three runs each.
+     `python run_eval.py --label after` -->
+
+|                     Criterion                       | Target |  Run 1 | Run 2  | Run 3  | Verdict |
+|-----------------------------------------------------|--------|--------|--------|--------|---------|
+| 1. Retrieved chunk contains the answer              | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 2. Every answer names a source                      | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 3. Gate stops out-of-corpus questions               | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 4. None of the chunks cut mid-sentence or mid-word  | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 5. System names all relevant documents              | 3 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+
+Run 1/2/3 above are the three separate after-eval passes
+(`results/run_2026-09-23_2203.md`, `_2204.md`, `_2205.md`). Criterion 5 was
+originally logged as 4 of 5 for Run 2, but rereading every answer in that file
+against its retrieved documents (the same trace method used for the Before
+table) found no case where a stated claim wasn't backed by a cited source —
+so that cell is corrected to 5 of 5 here.
+
+Source: `run_2026-09-23_2203.md`, `run_2026-09-23_2204.md`, `run_2026-09-23_2205.md`      Command: `python run_eval.py --label after`      Function: `run_eval.py::main`
+
+### Which places are most accessible? — after, all 3 runs (2203/2204/2205)
+
+- Best distance: 0.4854 (passed the gate)
+- Sources retrieved: guide_accessibility.md, guide_givens_mill.md, guide_halden_bay.md, guide_regional_transport.md, guide_walking.md
+
+```
+Thornby Wells is the region's most accessible town on foot, featuring flat, formal gardens and level streets (guide_walking.md).
+```
+
+Every one of the 9 after-runs for this question (3 files × 3 runs) cites only
+`guide_walking.md`. Before the hybrid-search change, all 9 before-runs cited
+`guide_walking.md` *and* `guide_accessibility.md`, adding the "easiest town
+for limited mobility" fact. `guide_accessibility.md` is still retrieved every
+time after the change — it's just never used in generation anymore. Nothing
+false is claimed and the citation is still accurate (`guide_walking.md` alone
+does contain "most accessible town on foot"), so this doesn't fail criterion
+5 — but it's a real completeness regression, covered under What's Still
+Broken below.
+
+### Where are the most expensive dining options? — after, run 2 (2204)
+
+- Best distance: 0.5522 (passed the gate)
+- Sources retrieved: guide_brightwater.md, guide_eating.md, guide_marchwood.md, guide_pellew_sands.md
+
+```
+Based on the provided documents, the area immediately around the station in Marchwood is described as "uniformly poor and expensive" (*guide_marchwood.md*). Additionally, Brightwater's riverside strip is priced for people walking from the hotels (*guide_eating.md*), and Pellew Sands's seafront is more expensive than Marine Terrace one street back (*guide_pellew_sands.md* and *guide_eating.md*).
+
+Sources: `guide_marchwood.md`, `guide_brightwater.md`, `guide_pellew_sands.md`, and `guide_eating.md`.
+```
+
+This is the case I checked most closely for criterion 5, since it cites four
+files. `guide_brightwater.md` is listed even though the inline attribution
+only names `guide_eating.md` for the riverside-strip fact — but
+`guide_brightwater.md`'s own "Eat and drink" section states the same fact
+independently, so the extra citation is accurate, not padding.
+
+**Did it help?**
+
+<!-- Say plainly whether it did, and how you know. If it made things worse,
+     say that — a change that backfired, honestly reported, earns full credit
+     and is more interesting than one that worked. What matters is that you can
+     tell.
+
+     Milestone 4. -->
+
+It did not help with best distance for questions that pass the gate (which was my aim) — the in-corpus best-distance numbers are bit-for-bit identical to before the change (0.4854, 0.5522, 0.5491, 0.3254, 0.4952), so hybrid fusion isn't touching the gate metric at all for these. It did increase the out-of-scope margin, but only for 2 of the 5 out-of-scope questions (Harry Potter 0.810→0.863, rosemary 0.843→0.909); the other 3 (Denmark, coffee, ebook) are unchanged. And "more complete answers" is mixed rather than uniform: the dining question (Q2) now pulls in and correctly cites more supporting documents (up to 4, vs. 2 before), but the accessibility question (Q1) got *less* complete — see What's Still Broken.
+## What's Still Broken
+
+**Hybrid search quietly narrowed one answer instead of widening it.** For "which places are most accessible?", every before-run cited both `guide_walking.md` (accessible on foot) and `guide_accessibility.md` (easiest for limited mobility). After the change, all 9 after-runs across the three eval passes cite only `guide_walking.md` — `guide_accessibility.md` is still retrieved every time, it's just never used in generation anymore. Nothing is factually wrong and the citation that remains is accurate, but the answer now only covers half of what it used to, for a question that's specifically asking about accessibility. My best guess at the mechanism: BM25 term overlap ranks the `guide_walking.md` chunk (which contains the literal phrase "most accessible town on foot") above the `guide_accessibility.md` chunk for this query, and RRF fusion is enough to push the accessibility-specific chunk out of whatever the generation step actually attends to, even though it's still in the retrieved set. I haven't fixed this — it would need either reranking that rewards source diversity across retrieved files, or a generation prompt that explicitly asks for information from every retrieved document rather than just the top-ranked one.
+
+Beyond that: answers are still occasionally longer than they need to be, and how many source documents get cited genuinely varies by question — for straightforward one-fact questions (Q4, Q5) a single citation is correct and complete, so answer length/source-count isn't itself a reliable signal of a problem; the accessibility case above is the one instance where I could actually show the extra source *should* have shown up and didn't.
+
+<!-- For each criterion still missed after your fix: what you'd do about it,
+     and why you stopped where you did.
+
+     "I ran out of time" is fine if it's true. Pretending nothing is left is
+     not.
+
+     Milestone 5. -->
+
+## What I'd Do Differently
+
+<!-- Knowing what you know now — which of your five criteria would you write
+     differently, and why?
+
+     Milestone 5. -->
