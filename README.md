@@ -290,7 +290,55 @@ the embedding mostly glided past.
 | Rank 1 | guide_regional_transport.md#5 (0.510)   | **guide_brightwater.md#1 (0.596)**   |
 | Rank 5 | guide_brightwater.md#1 (0.596)           | guide_accessibility.md#6 (0.661)     |
 
+**Fusion pool restriction.** A second, later improvement to the same feature
+above — not a separate one. Diagnosed under Unit 2 ("What's Still Broken"):
+hybrid search had started silently narrowing one answer instead of widening
+it, and tracing why turned up a real bug in how the fusion was scoped, not
+just a generation-side attention problem.
+
+Before this fix, `store.py::search` ran BM25 against every chunk in the
+collection (~115 for this corpus), then fused that whole-corpus ranking with
+semantic search's. BM25 only sees literal token overlap, with no notion of
+topical relevance — so for *"which places are most accessible?"*, the chunk
+that actually answers the question (`guide_accessibility.md#1`: *"Thornby
+Wells is the easiest town in the region..."*) paraphrases instead of reusing
+the word "accessible," and BM25 gave it almost no credit: rank 59th of ~115,
+despite being semantic search's 2nd-closest match (distance 0.541). Meanwhile
+an irrelevant chunk that merely happened to contain the literal word "places"
+(`guide_accessibility.md#0`, a content-free overview paragraph) reached BM25
+rank 11th — good enough, once fused, to push the real answer chunk out of the
+top 5 entirely.
+
+The fix: cap BM25 reranking to the `FUSION_POOL_SIZE` (20) semantically
+nearest chunks, instead of the whole collection. BM25 still gets to promote a
+buried-but-relevant chunk within that neighborhood — which is what made the
+Verrill Street case above work — it just can no longer reach outside the
+neighborhood to pull in something semantically unrelated.
+
+|                                    | Whole-corpus BM25 fusion (before)                                                                  | Pool-restricted BM25 fusion (after)                                                              |
+|------------------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| Fused top-5, "most accessible?"    | guide_walking.md#2, guide_regional_transport.md#2, **guide_accessibility.md#0** (irrelevant intro), guide_givens_mill.md#5, guide_halden_bay.md#7 | guide_walking.md#2, guide_regional_transport.md#2, guide_accessibility.md#0, guide_halden_bay.md#7, **guide_accessibility.md#1** (the real answer chunk) |
+| `guide_accessibility.md` cited?    | No, 0 of 3 runs                                                                                      | Yes, 3 of 3 runs                                                                                     |
+
+Checked for regressions before keeping it: the Verrill Street win above is
+unchanged (`guide_brightwater.md#1` still ranks first), and every in-corpus
+gate distance is bit-for-bit identical to before this change (0.4854, 0.5522,
+0.5491, 0.3254, 0.4952). Two of the five out-of-scope distances did shift
+slightly (Harry Potter 0.863→0.832, rosemary 0.909→0.843) — both stay far
+over the 0.56 cutoff, so criterion 3 is unaffected, but it's worth naming why:
+neither question has a genuinely close match anywhere in the corpus, so which
+chunk wins rank 1 among a field of irrelevant candidates is somewhat
+arbitrary, and narrowing the BM25 pool shifts that arbitrary winner. The true
+nearest neighbor for both questions (checked directly against the collection)
+never moved.
+
+Evidence: `results/run_2026-09-25_1954_after_fusion_pool.md`. This is the only
+change made to the system this unit — no chunking, embedding, or generation
+code was touched to produce it.
+
 ---
+
+
 
 # Unit 2
 
@@ -617,6 +665,18 @@ It did not help with best distance for questions that pass the gate (which was m
 ## What's Still Broken
 
 **Hybrid search quietly narrowed one answer instead of widening it.** For "which places are most accessible?", every before-run cited both `guide_walking.md` (accessible on foot) and `guide_accessibility.md` (easiest for limited mobility). After the change, all 9 after-runs across the three eval passes cite only `guide_walking.md` — `guide_accessibility.md` is still retrieved every time, it's just never used in generation anymore. Nothing is factually wrong and the citation that remains is accurate, but the answer now only covers half of what it used to, for a question that's specifically asking about accessibility. My best guess at the mechanism: BM25 term overlap ranks the `guide_walking.md` chunk (which contains the literal phrase "most accessible town on foot") above the `guide_accessibility.md` chunk for this query, and RRF fusion is enough to push the accessibility-specific chunk out of whatever the generation step actually attends to, even though it's still in the retrieved set. I haven't fixed this — it would need either reranking that rewards source diversity across retrieved files, or a generation prompt that explicitly asks for information from every retrieved document rather than just the top-ranked one.
+
+> **Fixed, as a stretch feature — see "Fusion pool restriction" under Stretch
+> features above.** The actual mechanism turned out to be different from
+> both guesses above: it wasn't a generation-side attention problem, and a
+> prompt telling the model to use every retrieved document (tested in
+> isolation first) didn't change the answer at all. The real cause was that
+> `guide_accessibility.md`'s answer chunk paraphrases the question ("easiest
+> town") instead of reusing its wording ("accessible"), so whole-corpus BM25
+> gave it almost no credit and it was being pushed out of the retrieved top 5
+> entirely — not buried inside it. Capping BM25 reranking to the semantic
+> candidate pool, instead of the whole collection, restores it: 3 of 3 fresh
+> runs now cite both documents again (`results/run_2026-09-25_1954_after_fusion_pool.md`).
 
 Beyond that: answers are still occasionally longer than they need to be, and how many source documents get cited genuinely varies by question — for straightforward one-fact questions (Q4, Q5) a single citation is correct and complete, so answer length/source-count isn't itself a reliable signal of a problem; the accessibility case above is the one instance where I could actually show the extra source *should* have shown up and didn't.
 

@@ -16,12 +16,19 @@ rest of the project if they were wrong:
    dimensions — but it arrives as an ONNX build from Chroma's own CDN, so the
    install needs neither PyTorch nor a reachable Hugging Face. See `_embedder`.
 
-4. `search` is hybrid: semantic (embeddings) and keyword (BM25) each rank
-   every chunk, and the two rankings are merged by Reciprocal Rank Fusion —
-   by rank position, not raw score, because cosine distance and BM25 score
-   live on incompatible scales with no shared zero point. Each `Result` still
+4. `search` is hybrid: semantic (embeddings) ranks every chunk, and keyword
+   (BM25) reranks only the top `FUSION_POOL_SIZE` of those — not the whole
+   collection. The two rankings are merged by Reciprocal Rank Fusion — by
+   rank position, not raw score, because cosine distance and BM25 score live
+   on incompatible scales with no shared zero point. Each `Result` still
    carries its real cosine distance, never a fused score, so the gate's
    threshold in `gate.py` keeps meaning exactly what it always meant.
+   Capping BM25 to the semantic pool matters: BM25 has no notion of topical
+   relevance, only literal token overlap, so ranking it against the entire
+   corpus let a chunk that merely shared one rare word with the question
+   outrank a chunk semantic search correctly identified as the closest
+   match, purely because the closer chunk paraphrased the answer instead of
+   reusing the question's own wording.
 """
 
 import os
@@ -222,6 +229,12 @@ def build_index(
     return len(chunks)
 
 
+# How many semantic candidates BM25 is allowed to rerank. A chunk that isn't
+# even in this neighborhood can't win purely on an incidental keyword match —
+# see the module docstring, point 4, for why that matters.
+FUSION_POOL_SIZE = 20
+
+
 def search(
     question: str,
     top_k: int | None = None,
@@ -231,11 +244,24 @@ def search(
     """
     Retrieve the chunks most relevant to a question — meaning and keywords.
 
-    Semantic search (embeddings) and keyword search (BM25) each rank every
-    chunk in the collection, and the two rankings are merged with Reciprocal
-    Rank Fusion: a chunk's fused score is the sum, across both rankings, of
-    1 / (60 + its rank there). Fusing by rank rather than raw score sidesteps
-    the fact that cosine distance and BM25 score aren't on comparable scales.
+    Semantic search (embeddings) ranks every chunk in the collection. Keyword
+    search (BM25) then reranks only the top `FUSION_POOL_SIZE` of those —
+    not the whole collection — and the two rankings are merged with
+    Reciprocal Rank Fusion: a chunk's fused score is the sum, across both
+    rankings, of 1 / (60 + its rank there). Fusing by rank rather than raw
+    score sidesteps the fact that cosine distance and BM25 score aren't on
+    comparable scales.
+
+    Restricting BM25 to the semantic candidate pool (rather than ranking it
+    against every chunk in the corpus) matters because BM25 has no concept of
+    topical relevance, only literal token overlap: a chunk that happens to
+    share one moderately rare word with the question can outscore a chunk
+    that paraphrases the answer without using the question's exact wording,
+    even when the paraphrase is the one semantic search correctly identified
+    as the closest match. Confined to the semantic neighborhood, BM25 can
+    still promote a buried-but-relevant chunk (its intended job) without
+    reaching outside that neighborhood to pull in something semantically
+    unrelated.
 
     Returned nearest-first by fused rank. `distance` on each `Result` is
     always the real cosine distance from the semantic ranking, never a fused
@@ -255,17 +281,20 @@ def search(
     if count == 0:
         return []
 
-    raw = collection.query(query_embeddings=embed([question]), n_results=count)
+    pool_size = min(count, max(top_k, FUSION_POOL_SIZE))
+    raw = collection.query(query_embeddings=embed([question]), n_results=pool_size)
     ids = raw["ids"][0]
     documents = dict(zip(ids, raw["documents"][0]))
     metadatas = dict(zip(ids, raw["metadatas"][0]))
     distances = dict(zip(ids, raw["distances"][0]))
     semantic_rank = {id_: rank for rank, id_ in enumerate(ids)}
 
+    # Full-corpus BM25 scores (correct IDF statistics need the whole corpus),
+    # but only this pool's ids get ranked against each other.
     bm25, bm25_ids = _bm25_index(collection, name)
-    bm25_scores = bm25.get_scores(_tokenize(question))
-    bm25_order = sorted(range(len(bm25_ids)), key=lambda i: bm25_scores[i], reverse=True)
-    bm25_rank = {bm25_ids[i]: rank for rank, i in enumerate(bm25_order)}
+    bm25_scores = dict(zip(bm25_ids, bm25.get_scores(_tokenize(question))))
+    pool_bm25_order = sorted(ids, key=lambda id_: bm25_scores.get(id_, 0.0), reverse=True)
+    bm25_rank = {id_: rank for rank, id_ in enumerate(pool_bm25_order)}
 
     RRF_K = 60
     fused_ids = sorted(
