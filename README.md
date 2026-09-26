@@ -336,6 +336,61 @@ Evidence: `results/run_2026-09-25_1954_after_fusion_pool.md`. This is the only
 change made to the system this unit — no chunking, embedding, or generation
 code was touched to produce it.
 
+### Run Log — After (fusion pool restriction)
+
+<!-- Same five criteria, same targets, same method as the hybrid-search
+     "After" table above: three separate full executions of `run_eval.py`,
+     each collapsed to one number per criterion, become the three Run
+     columns. This is the third such table in this README: Before, After
+     (hybrid search), and this one, for the second stretch-feature
+     improvement. -->
+
+|                     Criterion                              | Target |  Run 1 | Run 2  | Run 3  | Verdict |
+|--------------------------------------------------------------|--------|--------|--------|--------|---------|
+| 1. Retrieved chunk contains the answer                       | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 2. Every answer names a source                                | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 3. Gate stops out-of-corpus questions                          | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 4. None of the chunks cut mid-sentence or mid-word              | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+| 5. System names all documents where information is found        | 3 of 5 | 5 of 5 | 5 of 5 | 5 of 5 |  Met    |
+
+Run 1/2/3 are three separate after-eval passes
+(`results/run_2026-09-25_1954_after_fusion_pool.md`,
+`results/run_2026-09-26_1700_after_fusion_pool.md`,
+`results/run_2026-09-26_1701_after_fusion_pool.md`).
+
+Source: the three files above      Command: `python run_eval.py --label after_fusion_pool`      Function: `run_eval.py::main`
+
+Criterion 5 is the one this improvement targets, so it's worth showing the
+specific fix rather than just the count. Run 1's accessibility answer:
+
+```
+Based on the provided documents, Thornby Wells is the most accessible town in
+the region, featuring flat, formal gardens, level streets, and level areas
+throughout the pump room and gardens (guide_walking.md and
+guide_accessibility.md).
+```
+
+"level areas throughout the pump room and gardens" is a claim unique to
+`guide_accessibility.md`, and it's cited — across all 9 of these 9 runs (3
+files × 3 repeats), every answer to this question names both
+`guide_walking.md` and `guide_accessibility.md`. Before this fix, the same
+question named only `guide_walking.md` in 9 of 9 runs across three *different*
+files (`_2203`, `_2204`, `_2205` — see "What's Still Broken"). Across all 15
+answers per file, no claim traces back to an uncited document, so criterion 5
+holds at 5 of 5 in every one of the three passes — above its 3-of-5 target,
+and above the 3-of-5 the corpus's original, pre-hybrid-search baseline
+achieved.
+
+Criteria 1–4 don't move, which is expected: 1 and 4 depend on chunking and
+retrieval content, neither of which changed; 2 and 3 were already at their
+ceiling before this fix. The one visible flicker is the scorer's raw
+pass/fail column inside each run file (e.g. the dining question fails in 2 of
+3 repeats in the first file, 1 of 3 in the second) — that's `scorer.py`'s
+known exact-phrase brittleness reacting to the model's own wording changing
+between repeats (confirmed independent of this fix: it happens with the
+original, unmodified generation prompt too), not a retrieval or citation
+problem, and not something this criterion table is measuring.
+
 ---
 
 
